@@ -1,0 +1,26 @@
+services:
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    ports:
+      - "80:80"       # Visit http://localhost
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      # - ./certbot/conf:/etc/letsencrypt  <-- Comment out locally
+      # - ./certbot/www:/var/www/certbot    <-- Comment out locally
+    depends_on:
+      - frontend
+    networks:
+      - movie-network
+
+  frontend:
+    container_name: frontend
+    build: .
+    expose:
+      - "3000"
+    networks:
+      - movie-network
+
+networks:
+  movie-network:
+    external: true
