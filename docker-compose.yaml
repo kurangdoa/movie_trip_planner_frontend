@@ -26,6 +26,8 @@ services:
       - "3000"        # Keeps the port internal for Nginx to use
     # ports:
     #   - "80:80"     
+    environment:
+      - NEXT_PUBLIC_API_URL=https://movie-trip.kurangdoa.com/
     restart: always
     networks:
       - movie-network # Connects to the bridge
