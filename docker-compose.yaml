@@ -1,0 +1,36 @@
+services:
+  # THE FRONT DOOR
+  nginx:
+    container_name: nginx
+    image: nginx:latest
+    ports:
+      - "80:80"       # Exposes the site to your local browser
+      - "443:443"     # Open HTTPS port
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/conf:/etc/letsencrypt # <--- Store certificates here
+      - ./certbot/www:/var/www/certbot   # <--- Used for validation
+    depends_on:
+      - frontend
+    restart: always
+    networks:
+      - movie-network # Connects to the bridge so it can see the backend!
+
+  # THE UI
+  frontend:
+    container_name: frontend
+    build:
+      context: .
+      dockerfile: Dockerfile
+    expose:
+      - "3000"        # Keeps the port internal for Nginx to use
+    ports:
+      - "8080:80" # Map local 8080 to container 80
+    restart: always
+    networks:
+      - movie-network # Connects to the bridge
+
+# Tells this compose file the bridge already exists
+networks:
+  movie-network:
+    external: true
