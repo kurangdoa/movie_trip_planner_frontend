@@ -2,10 +2,20 @@
 
 import { useState } from "react";
 
+interface VibeResult {
+  movie_title: string;
+  vibe_score: number;
+  explanation: string;
+  listing_url: string;
+  picture_url?: string;
+}
+
 export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null); // We'll use 'any' for now, or you can define the TypeScript interface!
+  //const [result, setResult] = useState<any>(null); // We'll use 'any' for now, or you can define the TypeScript interface!
+  // <VibeResult | null> tells TypeScript it starts empty but will be this specific object
+  const [result, setResult] = useState<VibeResult | null>(null);
   const [error, setError] = useState("");
   const [city, setCity] = useState("Amsterdam"); // Or "" for no default
 
