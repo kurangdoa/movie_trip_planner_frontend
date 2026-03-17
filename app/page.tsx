@@ -49,16 +49,17 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gray-900 text-white p-10 flex flex-col items-center">
-      <h1 className="text-4xl font-bold mb-4 text-blue-400">Movie x Hotel Vibe Matcher 🍿✈️</h1>
-      <p className="text-2xl font-bold mb-8 text-blue-200">We match the vibe of your favorite movie to your holiday hotel!</p>
+      <h1 className="text-4xl font-bold mb-4 text-blue-400 text-center">Movie x Hotel Vibe Matcher 🍿✈️</h1>
+      <p className="text-2xl font-bold mb-8 text-blue-200 text-center">We match the vibe of your favorite movie to your holiday hotel!</p>
 
-      {/* SEARCH FORM */}
-      <form onSubmit={handleSearch} className="w-full max-w-3xl mb-8 flex gap-4">
+{/* SEARCH FORM */}
+      <form onSubmit={handleSearch} className="w-full max-w-3xl mb-8 flex flex-col md:flex-row gap-4">
+        
         {/* CITY DROPDOWN */}
         <select 
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          className="p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white md:w-48"
+          className="p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white w-full md:w-48"
         >
           <option value="">Anywhere</option>
           <option value="Amsterdam">Amsterdam</option>
@@ -66,18 +67,25 @@ export default function Home() {
           <option value="London">London</option>
           <option value="Tokyo">Tokyo</option>
         </select>
+
+        {/* TEXT INPUT */}
         <input
           type="text"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
-          placeholder="e.g. Medieval feeling of The Game of Thrones."
-          className="flex-1 p-3 rounded-lg text-white ring-2 ring-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          placeholder="e.g. Medieval feeling of Game of Thrones."
+          // ADDED: bg-gray-800 so the text-white is actually visible!
+          // ADDED: w-full so it fills the space on mobile
+          className="flex-1 w-full p-3 bg-gray-800 rounded-lg text-white ring-2 ring-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         />
+
+        {/* SUBMIT BUTTON */}
         <button
           type="submit"
           disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition disabled:opacity-50"
+          // ADDED: w-full md:w-auto to look like a wide button on phones, but normal on desktop
+          className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition disabled:opacity-50"
         >
           {loading ? "Searching..." : "Search"}
         </button>
