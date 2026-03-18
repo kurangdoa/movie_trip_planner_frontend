@@ -1,23 +1,30 @@
-"use client"; // Tells Next.js this is an interactive client component
+"use client";
 
 import { useState } from "react";
 
-interface VibeResult {
-  movie_title: string;
+// 1. We split the interface. One for the overall movie, one for the individual properties.
+interface PropertyMatch {
   vibe_score: number;
   explanation: string;
   listing_url: string;
   picture_url?: string;
 }
 
+interface VibeResult {
+  movie_title: string;
+  movie_poster?: string;
+  movie_overview?: string;
+  movie_url?: string; 
+  user_prompt?: string;
+  matches: PropertyMatch[]; // Now expecting an array of up to 3 properties!
+}
+
 export default function Home() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
-  //const [result, setResult] = useState<any>(null); // We'll use 'any' for now, or you can define the TypeScript interface!
-  // <VibeResult | null> tells TypeScript it starts empty but will be this specific object
   const [result, setResult] = useState<VibeResult | null>(null);
   const [error, setError] = useState("");
-  const [city, setCity] = useState("Amsterdam"); // Or "" for no default
+  const [city, setCity] = useState("Amsterdam");
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +35,6 @@ export default function Home() {
     try {
       const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const response = await fetch(`${API_URL}/api/recommend`, {
-      //const response = await fetch("http://localhost:8000/api/recommend", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ prompt: prompt, city: city }),
@@ -48,14 +54,20 @@ export default function Home() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-900 text-white p-10 flex flex-col items-center">
-      <h1 className="text-4xl font-bold mb-4 text-blue-400 text-center">Movie x Hotel Vibe Matcher 🍿✈️</h1>
-      <p className="text-2xl font-bold mb-8 text-blue-200 text-center">We match the vibe of your favorite movie to your holiday hotel!</p>
+    <main className="min-h-screen bg-gray-900 text-white p-4 md:p-10 flex flex-col items-center w-full">
+      
+      {/* HEADER SECTION */}
+      <div className="w-full flex flex-col items-center mb-8">
+        <h1 className="text-3xl md:text-5xl font-bold mb-4 text-blue-400 text-center w-full leading-tight">
+          Movie x Airbnb <br className="block md:hidden" /> Vibe Matcher 🍿✈️
+        </h1>
+        <p className="text-lg md:text-2xl font-bold text-blue-200 text-center max-w-xl">
+          We match the vibe of your favorite movie to your Airbnb stay!
+        </p>
+      </div>
 
-{/* SEARCH FORM */}
+      {/* SEARCH FORM */}
       <form onSubmit={handleSearch} className="w-full max-w-3xl mb-8 flex flex-col md:flex-row gap-4">
-        
-        {/* CITY DROPDOWN */}
         <select 
           value={city}
           onChange={(e) => setCity(e.target.value)}
@@ -63,97 +75,148 @@ export default function Home() {
         >
           <option value="">Anywhere</option>
           <option value="Amsterdam">Amsterdam</option>
-          <option value="Paris">Paris</option>
           <option value="London">London</option>
-          <option value="Tokyo">Tokyo</option>
         </select>
 
-        {/* TEXT INPUT */}
         <input
           type="text"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
           placeholder="e.g. Medieval feeling of Game of Thrones."
-          // ADDED: bg-gray-800 so the text-white is actually visible!
-          // ADDED: w-full so it fills the space on mobile
           className="flex-1 w-full p-3 bg-gray-800 rounded-lg text-white ring-2 ring-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-500"
           required
         />
 
-        {/* SUBMIT BUTTON */}
         <button
           type="submit"
           disabled={loading}
-          // ADDED: w-full md:w-auto to look like a wide button on phones, but normal on desktop
           className="w-full md:w-auto bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold transition disabled:opacity-50"
         >
           {loading ? "Searching..." : "Search"}
         </button>
       </form>
 
-      {/* ERROR MESSAGE */}
       {error && <p className="text-red-400 mb-4">{error}</p>}
 
-{/* RESULTS DISPLAY */}
+      {/* RESULTS DISPLAY - MULTIPLE PROPERTIES */}
       {result && (
-        <div className="bg-gray-800 rounded-2xl w-full max-w-2xl border border-gray-700 shadow-2xl overflow-hidden mt-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+        <div className="w-full max-w-6xl animate-in fade-in slide-in-from-bottom-4 duration-500 flex flex-col items-center">
           
-          {/* IMAGE HEADER (Handles missing images gracefully) */}
-          {result.picture_url ? (
-            <img 
-              src={result.picture_url} 
-              alt={`Vibe match for ${result.movie_title}`}
-              className="w-full h-64 object-cover border-b border-gray-700"
-            />
-          ) : (
-            <div className="w-full h-48 bg-gradient-to-r from-gray-900 to-gray-800 flex items-center justify-center border-b border-gray-700">
-              <span className="text-gray-500 text-lg">📸 Image not available</span>
-            </div>
-          )}
-
-          {/* CARD BODY */}
-          <div className="p-6 md:p-8 flex flex-col gap-6">
+          {/* THE MOVIE (VIBE SOURCE) */}
+          <div className="bg-gray-800 rounded-2xl w-full max-w-3xl border border-gray-700 shadow-2xl overflow-hidden mb-8 flex flex-col md:flex-row items-stretch">
+            {/* Poster Left Side */}
+            {result.movie_poster && (
+              <div className="w-full md:w-1/3 h-64 md:h-auto shrink-0 relative">
+                <img 
+                  src={result.movie_poster} 
+                  alt={result.movie_title}
+                  className="absolute inset-0 w-full h-full object-cover"
+                />
+              </div>
+            )}
             
-            {/* TITLE & SCORE ROW */}
-            <div className="flex justify-between items-start gap-4">
-              <div>
-                <p className="text-sm text-blue-400 font-bold uppercase tracking-widest mb-1">
-                  Perfect Match For
-                </p>
-                <h2 className="text-3xl font-black text-white leading-tight">
-                  {result.movie_title}
-                </h2>
-              </div>
-              
-              {/* VIBE SCORE BADGE */}
-              <div className="flex flex-col items-center justify-center bg-green-900/30 border border-green-500/50 rounded-xl p-3 min-w-[90px] shadow-inner">
-                <span className="text-3xl font-black text-green-400">{result.vibe_score}</span>
-                <span className="text-[10px] text-green-300 uppercase font-bold tracking-wider mt-1">Vibe Score</span>
-              </div>
-            </div>
-
-            {/* EXPLANATION BOX */}
-            <div className="bg-gray-900/50 rounded-xl p-5 border border-gray-700/50">
-              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-2">Why it fits the vibe</h3>
-              <p className="text-gray-200 leading-relaxed text-lg">
-                {result.explanation}
+            {/* Text Right Side */}
+            <div className="p-6 md:p-8 md:w-2/3 flex flex-col justify-center text-center md:text-left">
+              <p className="text-sm text-blue-400 font-bold uppercase tracking-widest mb-1">
+                The Cinematic Vibe
               </p>
-            </div>
+              <h2 className="text-3xl font-black text-white leading-tight mb-4">
+                {result.movie_title}
+              </h2>
+              
+              {/* 🟢 NEW: Overview Text */}
+              {result.movie_overview && (
+                <p className="text-gray-300 text-sm md:text-base leading-relaxed line-clamp-4 md:line-clamp-none mb-6">
+                  {result.movie_overview}
+                </p>
+              )}
 
-            {/* ACTION BUTTON */}
-            <a
-              href={result.listing_url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-6 rounded-xl text-center transition-all duration-200 shadow-[0_0_20px_rgba(37,99,235,0.3)] hover:shadow-[0_0_30px_rgba(37,99,235,0.5)] flex items-center justify-center gap-2 text-lg"
-            >
-              <span>View on Airbnb</span>
-              <span className="text-xl">✈️</span>
-            </a>
+              {/* 🟢 NEW: TMDB Link */}
+              {result.movie_url && (
+                <div className="mt-auto">
+                  <a 
+                    href={result.movie_url} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 text-sm font-bold text-blue-400 hover:text-blue-300 transition-colors bg-blue-900/20 px-4 py-2 rounded-full border border-blue-800/50 hover:border-blue-500/50 w-fit"
+                  >
+                    View on TMDB <span className="text-lg leading-none">↗</span>
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
+
+          {/* THE PROPERTIES (VIBE MATCHES) */}
+          <h3 className="text-2xl font-bold text-gray-200 mb-6 w-full text-center md:text-center">
+            Top {result.matches.length} Recommended Stays 🏨
+          </h3>
+          
+          <div className={`w-full gap-6 ${
+            result.matches.length === 1 
+              ? "flex justify-center" 
+              : "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+          }`}>
+            {result.matches.map((property, index) => (
+              <div 
+                key={index} 
+                className={`bg-gray-800 rounded-2xl border border-gray-700 shadow-xl overflow-hidden flex flex-col ${
+                  result.matches.length === 1 ? "w-full max-w-md" : ""
+                }`}
+              >
+                
+                {/* Airbnb Photo */}
+                <div className="h-48 relative border-b border-gray-700 bg-gray-900">
+                  {property.picture_url ? (
+                    <img 
+                      src={property.picture_url} 
+                      alt="Airbnb Listing"
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-500 text-sm">
+                      No Image
+                    </div>
+                  )}
+                  {/* Floating Rank Badge (#1, #2, #3) */}
+                  <div className="absolute top-3 left-3 bg-black/80 backdrop-blur-sm font-black px-3 py-1 rounded text-white shadow-lg border border-gray-600">
+                    #{index + 1}
+                  </div>
+                </div>
+
+                {/* Card Body */}
+                <div className="p-5 flex flex-col flex-1 gap-4">
+                  {/* Score */}
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400 font-bold text-sm uppercase tracking-wider">Vibe Score</span>
+                    <span className="text-xl font-black text-green-400 bg-green-900/30 border border-green-500/50 px-3 py-1 rounded-lg">
+                      {property.vibe_score}/100
+                    </span>
+                  </div>
+
+                  {/* Explanation */}
+                  <div className="bg-gray-900/50 rounded-lg p-4 border border-gray-700/50 flex-1">
+                    <p className="text-gray-300 text-sm leading-relaxed">
+                      {property.explanation}
+                    </p>
+                  </div>
+
+                  {/* Action Button */}
+                  <a
+                    href={property.listing_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg text-center transition-all shadow-[0_0_15px_rgba(37,99,235,0.2)] mt-auto"
+                  >
+                    View on Airbnb ✈️
+                  </a>
+                </div>
+              </div>
+            ))}
+          </div>
+
         </div>
       )}
-
 
     </main>
   );
