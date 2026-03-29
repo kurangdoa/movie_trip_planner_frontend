@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect,useState } from "react";
 
 // 1. We split the interface. One for the overall movie, one for the individual properties.
 interface PropertyMatch {
@@ -24,7 +24,31 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<VibeResult | null>(null);
   const [error, setError] = useState("");
-  const [city, setCity] = useState("Amsterdam");
+  const [city, setCity] = useState("");
+  const [availableCities, setAvailableCities] = useState<string[]>([]);
+  const [isLoadingCities, setIsLoadingCities] = useState(true);
+
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+  useEffect(() => {
+    const fetchCities = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/cities`);
+        if (!response.ok) throw new Error("Failed to fetch cities");
+        
+        const data = await response.json();
+        setAvailableCities(data.cities);
+      } catch (err) {
+        console.error("Error fetching cities from DB:", err);
+        // Fallback to hardcoded if the DB is unreachable during dev
+        setAvailableCities(["Amsterdam", "London"]); 
+      } finally {
+        setIsLoadingCities(false);
+      }
+    };
+
+    fetchCities();
+  }, [API_URL]);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,11 +95,18 @@ export default function Home() {
         <select 
           value={city}
           onChange={(e) => setCity(e.target.value)}
-          className="p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white w-full md:w-48"
+          disabled={isLoadingCities}
+          className="p-3 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white w-full md:w-48 disabled:opacity-50 disabled:cursor-wait transition-opacity"
         >
-          <option value="">Anywhere</option>
-          <option value="Amsterdam">Amsterdam</option>
-          <option value="London">London</option>
+          <option value="">
+            {isLoadingCities ? "Loading cities..." : "Anywhere"}
+          </option>
+          
+          {availableCities.map((dbCity) => (
+            <option key={dbCity} value={dbCity}>
+              {dbCity}
+            </option>
+          ))}
         </select>
 
         <input
