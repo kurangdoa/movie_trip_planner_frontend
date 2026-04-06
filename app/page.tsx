@@ -28,7 +28,7 @@ export default function Home() {
   const [availableCities, setAvailableCities] = useState<string[]>([]);
   const [isLoadingCities, setIsLoadingCities] = useState(true);
 
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8203";
 
   useEffect(() => {
     const fetchCities = async () => {
@@ -57,7 +57,7 @@ export default function Home() {
     setResult(null);
 
     try {
-      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8203";
       const response = await fetch(`${API_URL}/api/recommend`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

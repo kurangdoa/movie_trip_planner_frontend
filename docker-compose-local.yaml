@@ -6,7 +6,7 @@ services:
     expose:
       - "3000"
     ports:
-      - "3000:3000" # Open port 3000 directly to your browser
+      - "8202:3000" # Open port 3000 directly to your browser
     environment:
       # Talk directly to the local backend, completely bypassing Nginx
       - NEXT_PUBLIC_API_URL=http://localhost:8000
